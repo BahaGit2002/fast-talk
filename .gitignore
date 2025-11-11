@@ -1,0 +1,52 @@
+# === Общие ===
+*.log
+*.env
+*.pyc
+__pycache__/
+.DS_Store
+*.sqlite3
+*.db
+
+# === Backend (FastAPI / Python) ===
+backend/__pycache__/
+backend/.pytest_cache/
+backend/.mypy_cache/
+backend/.ruff_cache/
+backend/.env
+backend/.env.*
+backend/venv/
+backend/.venv/
+backend/*.db
+backend/*.sqlite3
+
+# Poetry / Pipenv / Virtualenv
+Pipfile.lock
+
+# === Frontend (Vue.js) ===
+frontend/node_modules/
+frontend/.env
+frontend/.env.*
+frontend/.cache/
+frontend/dist/
+frontend/build/
+
+# === Docker ===
+*.pid
+*.seed
+*.bak
+*.backup
+*.tar
+*.gz
+*.zip
+.env
+.env.*
+
+# === IDE / Editor ===
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# === OS Files ===
+Thumbs.db
+ehthumbs.db

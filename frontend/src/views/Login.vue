@@ -1,0 +1,90 @@
+<template>
+  <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-500 to-primary-700 px-4">
+    <div class="card max-w-md w-full">
+      <h1 class="text-3xl font-bold text-center mb-8 text-gray-800">Вход в Fast Talk</h1>
+      
+      <form @submit.prevent="handleLogin" class="space-y-6">
+        <div>
+          <label for="email" class="block text-sm font-medium text-gray-700 mb-2">
+            Email
+          </label>
+          <input
+            id="email"
+            v-model="email"
+            type="email"
+            required
+            class="input-field"
+            placeholder="your@email.com"
+          />
+        </div>
+
+        <div>
+          <label for="password" class="block text-sm font-medium text-gray-700 mb-2">
+            Пароль
+          </label>
+          <input
+            id="password"
+            v-model="password"
+            type="password"
+            required
+            class="input-field"
+            placeholder="••••••••"
+          />
+        </div>
+
+        <div v-if="error" class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+          {{ error }}
+        </div>
+
+        <button
+          type="submit"
+          :disabled="loading"
+          class="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {{ loading ? 'Вход...' : 'Войти' }}
+        </button>
+      </form>
+
+      <p class="mt-6 text-center text-gray-600">
+        Нет аккаунта?
+        <router-link to="/register" class="text-primary-600 hover:text-primary-700 font-medium">
+          Зарегистрироваться
+        </router-link>
+      </p>
+    </div>
+  </div>
+</template>
+
+<script setup>
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+import { useAuthStore } from '../stores/auth'
+import { useChatStore } from '../stores/chat'
+
+const router = useRouter()
+const authStore = useAuthStore()
+const chatStore = useChatStore()
+
+const email = ref('')
+const password = ref('')
+const error = ref('')
+const loading = ref(false)
+
+async function handleLogin() {
+  error.value = ''
+  loading.value = true
+
+  const result = await authStore.login(email.value, password.value)
+
+  if (result.success) {
+    // Инициализируем WebSocket после успешного входа
+    chatStore.initializeWebSocket(authStore.token)
+    router.push('/chat')
+  } else {
+    error.value = result.error
+  }
+
+  loading.value = false
+}
+</script>
+
