@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Optional
 
 from sqlalchemy import String, Boolean, DateTime, func, ForeignKey, Integer
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -21,6 +22,20 @@ class User(Base):
         DateTime(timezone=True), server_default=func.now()
     )
 
+    # Relationships
+    avatar: Mapped[Optional["UserAvatar"]] = relationship(
+        "UserAvatar", back_populates="user", uselist=False, cascade="all, delete-orphan"
+    )
+    created_groups: Mapped[list["Group"]] = relationship("Group", back_populates="creator")
+    groups: Mapped[list["Group"]] = relationship(
+        "Group", secondary="group_members", back_populates="members"
+    )
+    sent_messages: Mapped[list["Message"]] = relationship(
+        "Message",
+        back_populates="sender",
+        foreign_keys="Message.sender_id"
+    )
+
 
 class UserAvatar(Base):
     __tablename__ = "user_avatars"
@@ -40,5 +55,5 @@ class UserAvatar(Base):
     height: Mapped[int] = mapped_column(Integer, nullable=False)
     size_type: Mapped[str] = mapped_column(String(20), default="original")
 
-    # Relationships
-    user = relationship("User", back_populates="avatar")
+    # Relationship
+    user: Mapped["User"] = relationship("User", back_populates="avatar")

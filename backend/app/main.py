@@ -4,6 +4,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
+from app.api.auth import router as auth_router
+from app.api.user import router as user_router
 
 logging.basicConfig(
     level=logging.INFO,
@@ -25,12 +27,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
-# # Подключение роутеров
-# app.include_router(auth.router, prefix=settings.API_V1_PREFIX)
-# app.include_router(chat.router, prefix=settings.API_V1_PREFIX)
-# app.include_router(upload.router, prefix=settings.API_V1_PREFIX)
-# app.include_router(groups.router, prefix=settings.API_V1_PREFIX)
+app.include_router(auth_router, prefix=settings.API_V1_PREFIX)
+app.include_router(user_router, prefix=settings.API_V1_PREFIX)
 
 
 @app.get("/")

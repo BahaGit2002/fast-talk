@@ -39,11 +39,13 @@ class Group(Base):
     )
 
     # Relationships
-    creator = relationship("User", back_populates="created_groups")
-    members = relationship(
+    creator: Mapped["User"] = relationship(
+        "User", back_populates="created_groups"
+    )
+    members: Mapped[list["User"]] = relationship(
         "User", secondary=group_members, back_populates="groups"
     )
-    messages = relationship(
+    messages: Mapped[list["Message"]] = relationship(
         "Message", back_populates="group", cascade="all, delete-orphan"
     )
 
@@ -66,8 +68,19 @@ class Message(Base):
     message_type = Column(Enum(MessageType), default=MessageType.TEXT)
 
     # Relationships
-    group = relationship("Group", back_populates="messages")
-    sender = relationship("User", back_populates="sent_messages")
+    group: Mapped["Group"] = relationship("Group", back_populates="messages")
+    sender: Mapped["User"] = relationship(
+        "User",
+        back_populates="sent_messages",
+        foreign_keys=[sender_id]
+    )
+    receiver: Mapped["User"] = relationship(
+        "User",
+        foreign_keys=[receiver_id]
+    )
+    media: Mapped[list["MessageMedia"]] = relationship(
+        "MessageMedia", back_populates="message", cascade="all, delete-orphan"
+    )
 
 
 class MessageMedia(Base):
@@ -95,4 +108,6 @@ class MessageMedia(Base):
     original_name: Mapped[str] = mapped_column(String(255), nullable=False)
 
     # Relationship
-    message = relationship("Message", back_populates="media")
+    message: Mapped["Message"] = relationship(
+        "Message", back_populates="media"
+    )
