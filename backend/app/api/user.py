@@ -3,7 +3,7 @@ from app.models import User
 from app.schemas.user_schema import UserResponse
 from app.utils.dependencies import get_current_user
 
-router = APIRouter(prefix="/user", tags=["user"])
+router = APIRouter(prefix="/users", tags=["user"])
 
 
 @router.get("/me", response_model=UserResponse)

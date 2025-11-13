@@ -9,8 +9,8 @@
             Имя пользователя
           </label>
           <input
-            id="username"
-            v-model="username"
+            id="fullname"
+            v-model="fullname"
             type="text"
             required
             class="input-field"
@@ -94,7 +94,7 @@ const router = useRouter()
 const authStore = useAuthStore()
 const chatStore = useChatStore()
 
-const username = ref('')
+const fullname = ref('')
 const email = ref('')
 const password = ref('')
 const confirmPassword = ref('')
@@ -116,10 +116,9 @@ async function handleRegister() {
 
   loading.value = true
 
-  const result = await authStore.register(username.value, email.value, password.value)
+  const result = await authStore.register(fullname.value, email.value, password.value)
 
   if (result.success) {
-    // Инициализируем WebSocket после успешной регистрации
     chatStore.initializeWebSocket(authStore.token)
     router.push('/chat')
   } else {
