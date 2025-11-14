@@ -193,7 +193,6 @@ function handleGroupCreated(group) {
 
 async function handleUserSelected(user) {
   try {
-    // Создаем или получаем приватный чат
     const response = await api.post('/chats/private', { user_id: user.id })
     const chat = response.data
     if (!chats.value.find(c => c.id === chat.id)) {

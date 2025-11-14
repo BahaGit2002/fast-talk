@@ -1,113 +1,31 @@
-from sqlalchemy import (
-    String, Text, ForeignKey, Boolean, Table, Column,
-    Integer, DateTime, func,
-)
+from datetime import datetime
+
+from sqlalchemy import ForeignKey, DateTime, func, UniqueConstraint, Index
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy.sql.sqltypes import Enum
 
 from app.models.base import Base
-from app.models.enums import MessageType
-
-group_members = Table(
-    'group_members',
-    Base.metadata,
-    Column(
-        'user_id', Integer, ForeignKey('users.id', ondelete='CASCADE'),
-        primary_key=True
-    ),
-    Column(
-        'group_id', Integer, ForeignKey('groups.id', ondelete='CASCADE'),
-        primary_key=True
-    ),
-    Column('joined_at', DateTime(timezone=True), server_default=func.now()),
-    Column('is_admin', Boolean, default=False)
-)
 
 
-class Group(Base):
-    __tablename__ = "groups"
+class Chat(Base):
+    __tablename__ = "chats"
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
-    name: Mapped[str] = mapped_column(String(100), nullable=False)
-    description: Mapped[str] = mapped_column(Text, nullable=True)
-    avatar_url: Mapped[str] = mapped_column(String(255), nullable=False)
-    creator_id: Mapped[int] = mapped_column(
-        ForeignKey('users.id', ondelete='SET NULL'), nullable=False
-    )
-    is_private: Mapped[bool] = mapped_column(
-        Boolean, nullable=False, default=False
+    user1_id: Mapped[int] = mapped_column(ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
+    user2_id: Mapped[int] = mapped_column(ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
 
     # Relationships
-    creator: Mapped["User"] = relationship(
-        "User", back_populates="created_groups"
-    )
-    members: Mapped[list["User"]] = relationship(
-        "User", secondary=group_members, back_populates="groups"
-    )
+    user1: Mapped["User"] = relationship("User", foreign_keys=[user1_id], back_populates="chats_as_user1")
+    user2: Mapped["User"] = relationship("User", foreign_keys=[user2_id], back_populates="chats_as_user2")
     messages: Mapped[list["Message"]] = relationship(
-        "Message", back_populates="group", cascade="all, delete-orphan"
+        "Message", back_populates="chat", cascade="all, delete-orphan"
     )
 
-
-class Message(Base):
-    __tablename__ = "messages"
-
-    id: Mapped[int] = mapped_column(primary_key=True, index=True)
-    group_id: Mapped[int] = mapped_column(
-        ForeignKey('groups.id', ondelete='CASCADE'), nullable=False
-    )
-    sender_id: Mapped[int] = mapped_column(
-        ForeignKey('users.id', ondelete='CASCADE'), nullable=False
-    )
-    receiver_id = Column(
-        Integer, ForeignKey('users.id', ondelete='CASCADE'), nullable=True
-    )
-
-    content: Mapped[str] = mapped_column(Text, nullable=False)
-    message_type = Column(Enum(MessageType), default=MessageType.TEXT)
-
-    # Relationships
-    group: Mapped["Group"] = relationship("Group", back_populates="messages")
-    sender: Mapped["User"] = relationship(
-        "User",
-        back_populates="sent_messages",
-        foreign_keys=[sender_id]
-    )
-    receiver: Mapped["User"] = relationship(
-        "User",
-        foreign_keys=[receiver_id]
-    )
-    media: Mapped[list["MessageMedia"]] = relationship(
-        "MessageMedia", back_populates="message", cascade="all, delete-orphan"
-    )
-
-
-class MessageMedia(Base):
-    __tablename__ = "message_media"
-
-    id = Column(Integer, primary_key=True, index=True)
-    message_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey(
-            'messages.id', ondelete='CASCADE'
-        ), nullable=False, index=True
-    )
-    media_type: Mapped[MessageType] = mapped_column(
-        Enum(MessageType), nullable=False
-    )
-
-    s3_key: Mapped[str] = mapped_column(String(512), nullable=False)
-    s3_url: Mapped[str] = mapped_column(String(1024), nullable=False)
-
-    # Метаданные
-    file_size: Mapped[int] = mapped_column(nullable=False)
-    duration: Mapped[float] = mapped_column(nullable=True)
-    mime_type: Mapped[str] = mapped_column(String(50), default="image/jpeg")
-    width: Mapped[int] = mapped_column(Integer, nullable=False)
-    height: Mapped[int] = mapped_column(Integer, nullable=False)
-    original_name: Mapped[str] = mapped_column(String(255), nullable=False)
-
-    # Relationship
-    message: Mapped["Message"] = relationship(
-        "Message", back_populates="media"
+    __table_args__ = (
+        UniqueConstraint('user1_id', 'user2_id', name='unique_chat_users'),
+        Index('idx_user1_user2', 'user1_id', 'user2_id'),
+        Index('idx_user2_user1', 'user2_id', 'user1_id'),
     )

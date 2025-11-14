@@ -19,3 +19,12 @@ class UserRepository:
         await self.db.commit()
         await self.db.refresh(user)
         return user
+    
+    async def get_users(self, exclude_user_id: int | None = None) -> list[User]:
+        query = select(User)
+
+        if exclude_user_id:
+            query = query.where(User.id != exclude_user_id)
+
+        result = await self.db.execute(query)
+        return result.scalars().all()
